@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2015
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityReferencesTree.CSharp.Editor", "UnityReferencesTree.CSharp.Editor.csproj", "{990E27D5-E651-EC14-09C4-F97F57A91860}"
+# Visual Studio 15
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityReferencesTree.Editor", "UnityReferencesTree.Editor.csproj", "{ABD35487-A144-9652-B0FC-4F3E39F05F8B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -9,10 +9,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{990E27D5-E651-EC14-09C4-F97F57A91860}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{990E27D5-E651-EC14-09C4-F97F57A91860}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{990E27D5-E651-EC14-09C4-F97F57A91860}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{990E27D5-E651-EC14-09C4-F97F57A91860}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ABD35487-A144-9652-B0FC-4F3E39F05F8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ABD35487-A144-9652-B0FC-4F3E39F05F8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ABD35487-A144-9652-B0FC-4F3E39F05F8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ABD35487-A144-9652-B0FC-4F3E39F05F8B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

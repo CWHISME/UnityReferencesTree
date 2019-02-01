@@ -6,6 +6,7 @@ using System.Collections;
 using UnityEditor;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
+using System.IO;
 
 /// <summary>
 /// 用于处理寻找物体引用
@@ -35,7 +36,7 @@ public class FindReferenceTools : EditorWindow
     public static void OpenWindow()
     {
         FindReferenceTools win = EditorWindow.GetWindow<FindReferenceTools>();
-        win.position = new Rect(win.position.x, win.position.y, 500, 600);
+        win.position = new Rect(win.position.x, win.position.y, 700, 600);
         win.Show();
     }
 
@@ -147,10 +148,10 @@ public class FindReferenceTools : EditorWindow
         //EditorGUILayout.LabelField(new string(' ', layer * 5) + items._object.name, textStyle);
         //EditorGUILayout.LabelField(new string(' ', layer * 5 + (textStyle.fontSize - GUI.skin.font.fontSize)) + "(" + items._path + ")");
         EditorGUILayout.BeginHorizontal();
-        GUILayout.Label(new GUIContent(AssetPreview.GetMiniThumbnail(items._object)), GUILayout.Height(22), GUILayout.Width(22));
-        EditorGUILayout.LabelField(items._object.name, textStyle);
+        GUILayout.Label(new GUIContent(AssetPreview.GetMiniThumbnail(items.GetObject)), GUILayout.Height(22), GUILayout.Width(22));
+        EditorGUILayout.LabelField(items.Name, textStyle);
         EditorGUILayout.EndHorizontal();
-        EditorGUILayout.LabelField("(" + items._path + ")");
+        EditorGUILayout.LabelField("(" + items.Path + ")");
 
         GUILayout.Space(5);
 
@@ -158,10 +159,10 @@ public class FindReferenceTools : EditorWindow
         {
             //EditorGUILayout.BeginHorizontal();
             //GUILayout.Label(" ", GUILayout.Width(layer * 45));
-            items._fold = !EditorGUILayout.Foldout(!items._fold, name);
+            items._isFold = !EditorGUILayout.Foldout(!items._isFold, name);
             //EditorGUILayout.EndHorizontal();
 
-            if (!items._fold)
+            if (!items._isFold)
             {
                 //EditorGUILayout.BeginVertical(GUI.skin.box);
                 for (int i = 0; i < items._refList.Count; i++)
@@ -174,7 +175,7 @@ public class FindReferenceTools : EditorWindow
 
         EditorGUILayout.EndVertical();
         if (GUILayout.Button("定位"))
-            EditorGUIUtility.PingObject(items._object);
+            EditorGUIUtility.PingObject(items.GetObject);
         EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.EndHorizontal();
@@ -190,14 +191,14 @@ public class FindReferenceTools : EditorWindow
         EditorGUILayout.BeginHorizontal();
         //GUILayout.Label(" ", GUILayout.Width(layer * 30));
 
-        EditorGUILayout.BeginHorizontal(GUI.skin.box);
+        EditorGUILayout.BeginHorizontal(/*GUI.skin.box*/);
         EditorGUILayout.BeginVertical();
-        EditorGUILayout.LabelField(new string(' ', layer * 5) + items._object.name, textStyle);
-        EditorGUILayout.LabelField(new string(' ', layer * 5 + (textStyle.fontSize - GUI.skin.font.fontSize)) + "(" + items._path + ")");
+        EditorGUILayout.LabelField(new string(' ', layer * 5) + items.Name, textStyle);
+        EditorGUILayout.LabelField(new string(' ', layer * 5 + (textStyle.fontSize - GUI.skin.font.fontSize)) + "(" + items.Path + ")");
 
         EditorGUILayout.EndVertical();
         if (GUILayout.Button("定位"))
-            EditorGUIUtility.PingObject(items._object);
+            EditorGUIUtility.PingObject(items.GetObject);
         EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.EndHorizontal();
@@ -206,9 +207,9 @@ public class FindReferenceTools : EditorWindow
 
         if (items._refList.Count > 0)
         {
-            items._fold = !EditorGUILayout.Foldout(!items._fold, name);
+            items._isFold = !EditorGUILayout.Foldout(!items._isFold, name);
 
-            if (!items._fold)
+            if (!items._isFold)
             {
                 for (int i = 0; i < items._refList.Count; i++)
                 {
@@ -293,9 +294,14 @@ public class FindReferenceTools : EditorWindow
 
     public class RefItem
     {
-        public Object _object;
-        public string _path;
-        public bool _fold;
+        /// <summary>
+        /// 是否折叠
+        /// </summary>
+        public bool _isFold;
+
+        private Object _object;
+        private string _path;
+        private string _size;
 
         public List<RefItem> _refList = new List<RefItem>();
 
@@ -303,6 +309,17 @@ public class FindReferenceTools : EditorWindow
         {
             _object = o;
             _path = AssetDatabase.GetAssetPath(o);
+            //计算硬盘占用大小
+            FileInfo info = new FileInfo(_path);
+            if (info.Exists)
+            {
+                float size = info.Length;
+                if (size < 1024)
+                    _size = size.ToString() + "B";
+                else if (size < 1024 * 1024)
+                    _size = System.Math.Round((size / 1024), 2).ToString() + "KB";
+                else _size = System.Math.Round((size / 1024 / 1024), 2).ToString() + "M";
+            }
             string[] paths = AssetDatabase.GetDependencies(_path, false);
             for (int i = 0; i < paths.Length; i++)
             {
@@ -311,6 +328,20 @@ public class FindReferenceTools : EditorWindow
                 _refList.Add(item);
             }
         }
+
+        public string Name
+        {
+            get
+            {
+                if (_object)
+                    return _object.name + "(" + _size + ")";
+                return "Null";
+            }
+        }
+
+        public string Path { get { return _path; } }
+
+        public Object GetObject { get { return _object; } }
     }
 
     public enum ShowMode
