@@ -7,6 +7,7 @@ using UnityEditor;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 
 /// <summary>
 /// 用于处理寻找物体引用
@@ -53,6 +54,8 @@ public class FindReferenceTools : EditorWindow
     private GUIStyle textStyle = null;
 
     private Vector2 _scroll;
+
+    private GameObject _instanceGameObject;
 
     void OnGUI()
     {
@@ -123,6 +126,12 @@ public class FindReferenceTools : EditorWindow
         EditorGUILayout.EndVertical();
     }
 
+    private void OnDestroy()
+    {
+        if (_instanceGameObject)
+            DestroyImmediate(_instanceGameObject);
+    }
+
     private void ShowRefFolderItems(RefFolderItem items, int layer = 0)
     {
         EditorGUILayout.LabelField(new string('-', layer * 2) + items._name, textStyle);
@@ -174,8 +183,14 @@ public class FindReferenceTools : EditorWindow
         }
 
         EditorGUILayout.EndVertical();
-        if (GUILayout.Button("定位"))
+        Color oldColor = GUI.color;
+        GUI.color = Color.green;
+        if (GUILayout.Button("定位", GUILayout.Width(50)))
             EditorGUIUtility.PingObject(items.GetObject);
+        GUI.color = Color.yellow;
+        if (GUILayout.Button("查找位置", GUILayout.Width(70)))
+            FindRefernceTargetPosition(items.GetObject);
+        GUI.color = oldColor;
         EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.EndHorizontal();
@@ -183,6 +198,67 @@ public class FindReferenceTools : EditorWindow
         GUILayout.Space(15);
     }
 
+    private void FindRefernceTargetPosition(Object target)
+    {
+        if (PrefabUtility.GetPrefabType(_target) == PrefabType.None)
+        {
+            EditorUtility.DisplayDialog("Error", "当前查询目标物体不是一个Prefab！", "OK");
+            return;
+        }
+        if (EditorUtility.DisplayDialog("提示", "该操作会实例化一个Prefab，并定位当前引用物体", "OK"))
+        {
+            if (_instanceGameObject)
+                DestroyImmediate(_instanceGameObject);
+            _instanceGameObject = PrefabUtility.InstantiatePrefab(_target) as GameObject;
+            MonoBehaviour[] mono = _instanceGameObject.GetComponentsInChildren<MonoBehaviour>(true);
+            List<GameObject> objs = new List<GameObject>();
+            System.Type mainType = target.GetType();
+            for (int i = 0; i < mono.Length; i++)
+            {
+                EditorUtility.DisplayProgressBar("查找引用", "查找中...", mono.Length / (i + 1));
+
+                var o = mono[i];
+                //List<FieldInfo> infoList = new List<FieldInfo>();
+                //System.Type pt = o.GetType();
+                //do
+                //{
+                //    infoList.AddRange(pt.GetFields(BindingFlags.Instance | BindingFlags.Public));
+                //    pt = pt.BaseType;
+                //} while (pt != typeof(MonoBehaviour));
+                PropertyInfo[] infos = o.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
+                foreach (PropertyInfo info in infos)
+                {
+                    System.Type type = info.PropertyType;
+                    Object otherObj = null;
+                    try
+                    {
+                        otherObj = info.GetValue(o, null) as Object;
+                    }
+                    catch (System.Exception)
+                    {
+                        //Debug.Log("Find Error:" + ex.Message);
+                    }
+
+                    //材质需特殊处理下
+                    if (type == mainType && otherObj && otherObj.Equals(target))
+                    {
+                        //Debug.Log(o.name + "  " + type + "-----" + info.Name);
+                        EditorGUIUtility.PingObject(o);
+                        objs.Add(o.gameObject);
+                        break;
+                    }
+                }
+            }
+            EditorUtility.ClearProgressBar();
+            if (objs.Count < 1)
+            {
+                EditorUtility.DisplayDialog("Error", "当前查询目标物体中未找到该直接引用，可能是多层引用，暂不支持！", "OK");
+                if (_instanceGameObject)
+                    DestroyImmediate(_instanceGameObject);
+            }
+            else Selection.objects = objs.ToArray();
+        }
+    }
 
     private void ShowRefItemsDirect(RefItem items, int layer = 0)
     {
