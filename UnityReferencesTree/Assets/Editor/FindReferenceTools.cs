@@ -1,5 +1,6 @@
 ﻿//Author:wangjiaying
 //Date:2016.11.16
+//cwhisme@qq.com
 //Function:
 using UnityEngine;
 using System.Collections;
@@ -188,8 +189,9 @@ public class FindReferenceTools : EditorWindow
         if (GUILayout.Button("定位", GUILayout.Width(50)))
             EditorGUIUtility.PingObject(items.GetObject);
         GUI.color = Color.yellow;
-        if (GUILayout.Button("查找位置", GUILayout.Width(70)))
-            FindRefernceTargetPosition(items.GetObject);
+        if (items.GetObject != _target)
+            if (GUILayout.Button("查找位置", GUILayout.Width(70)))
+                FindRefernceTargetPosition(items.GetObject);
         GUI.color = oldColor;
         EditorGUILayout.EndHorizontal();
 
@@ -212,7 +214,7 @@ public class FindReferenceTools : EditorWindow
             _instanceGameObject = PrefabUtility.InstantiatePrefab(_target) as GameObject;
             MonoBehaviour[] mono = _instanceGameObject.GetComponentsInChildren<MonoBehaviour>(true);
             List<GameObject> objs = new List<GameObject>();
-            System.Type mainType = target.GetType();
+            //System.Type mainType = target.GetType();
             for (int i = 0; i < mono.Length; i++)
             {
                 EditorUtility.DisplayProgressBar("查找引用", "查找中...", mono.Length / (i + 1));
@@ -239,8 +241,7 @@ public class FindReferenceTools : EditorWindow
                         //Debug.Log("Find Error:" + ex.Message);
                     }
 
-                    //材质需特殊处理下
-                    if (type == mainType && otherObj && otherObj.Equals(target))
+                    if (otherObj && otherObj.Equals(target))
                     {
                         //Debug.Log(o.name + "  " + type + "-----" + info.Name);
                         EditorGUIUtility.PingObject(o);
