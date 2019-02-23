@@ -1,7 +1,10 @@
-﻿//Author:wangjiaying
+﻿//================================================
+//Author:wangjiaying
 //Date:2016.11.16
 //cwhisme@qq.com
 //Function:
+//This on https://github.com/CWHISME/UnityReferencesTree.git
+//================================================
 using UnityEngine;
 using System.Collections;
 using UnityEditor;
